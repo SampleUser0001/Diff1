@@ -1,35 +1,39 @@
 package diff1;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
 
 public class Main {
 
-	public static final String INPUT_FILE1 = System.getProperty("user.dir")+"\\files\\input1.txt";
-	public static final String INPUT_FILE2 = System.getProperty("user.dir")+"\\files\\input2.txt";
-	public static final String OUTPUT_FILE = System.getProperty("user.dir")+"\\files\\output.txt";
+	public static final Path INPUT_FILE1 = Paths.get(System.getProperty("user.dir"),"files","input1.txt");
+	public static final Path INPUT_FILE2 = Paths.get(System.getProperty("user.dir"),"files","input2.txt");
+	public static final Path OUTPUT_FILE = Paths.get(System.getProperty("user.dir"),"files","output.tsv");
 
 	public static void main(String[] main){
 
 		ArrayList<String> allList = new ArrayList<String>();
 
 		try {
-			ArrayList<String> file1 = readFile(INPUT_FILE1 , allList);
-			ArrayList<String> file2 = readFile(INPUT_FILE2 , allList);
+			List<String> list1 = Files.readAllLines(INPUT_FILE1);
+			List<String> list2 = Files.readAllLines(INPUT_FILE2);
 
-			BufferedWriter writer = new BufferedWriter(new FileWriter(new File(OUTPUT_FILE)));
 			StringBuilder _builder = new StringBuilder();
 			_builder.append("line\titem1\titem2\r\n");
-			for(String str : allList){
-				_builder.append(str + "\t");
-				writeOrNot(_builder, str, file1).append("\t");
-				writeOrNot(_builder, str, file2).append("\r\n");
-			}
+
+			Stream.concat(list1.stream(), list2.stream()).distinct().forEach((line) -> {
+				_builder.append(line + "\t");
+				writeOrNot(_builder, line, list1).append("\t");
+				writeOrNot(_builder, line, list2).append("\r\n");
+			});
+
+			BufferedWriter writer = Files.newBufferedWriter(OUTPUT_FILE,StandardCharsets.UTF_8);
 			writer.write(_builder.toString());
 			writer.close();
 
@@ -38,25 +42,9 @@ public class Main {
 		}
 	}
 
-	public static ArrayList<String> readFile(String filePath , ArrayList<String> allList) throws IOException{
-		BufferedReader reader = new BufferedReader(new FileReader(new File(filePath)));
-		ArrayList<String> list = new ArrayList<>();
 
-		String line;
-		while((line = reader.readLine()) != null){
-			list.add(line);
-			if(!allList.contains(line)){
-				allList.add(line);
-			}
-		}
-		reader.close();
-
-		return list;
-
-	}
-
-	public static StringBuilder writeOrNot(StringBuilder _builder , String str , ArrayList list){
-		if(list.contains(str)){
+	public static StringBuilder writeOrNot(StringBuilder _builder , String str , List<String> list1){
+		if(list1.contains(str)){
 			_builder.append("○");
 		} else {
 			_builder.append("×");
