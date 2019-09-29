@@ -3,35 +3,58 @@ package diff1;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
 
-	public static final Path INPUT_FILE1 = Paths.get(System.getProperty("user.dir"),"files","input1.txt");
-	public static final Path INPUT_FILE2 = Paths.get(System.getProperty("user.dir"),"files","input2.txt");
 	public static final Path OUTPUT_FILE = Paths.get(System.getProperty("user.dir"),"files","output.tsv");
 
-	public static void main(String[] main){
+	public static final Path INPUT_DIR = Paths.get(System.getProperty("user.dir"),"files","diffs");
 
-		ArrayList<String> allList = new ArrayList<String>();
+	private static List<String> allList = new ArrayList<String>();
+	private static Map<String,List<String>> filesMap = new LinkedHashMap<String,List<String>>();
 
+	public static void main(String[] main) throws IOException{
+
+		try(Stream<Path> walk = Files.walk(INPUT_DIR, FileVisitOption.FOLLOW_LINKS)){
+			walk.sorted(Comparator.reverseOrder())
+				.forEach( path -> {
+					try {
+						if(!Files.isDirectory(path)) {
+							allList.addAll(Files.lines(path).collect(Collectors.toList()));
+							filesMap.put(INPUT_DIR.relativize(path).toString(), Files.readAllLines(path));
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				});
+		}
+		allList = allList.stream().distinct().collect(Collectors.toList());
 		try {
-			List<String> list1 = Files.readAllLines(INPUT_FILE1);
-			List<String> list2 = Files.readAllLines(INPUT_FILE2);
 
 			StringBuilder _builder = new StringBuilder();
-			_builder.append("line\titem1\titem2\r\n");
+			for(String filePath : filesMap.keySet()) {
+				_builder.append(filePath+"\t");
+			}
+			_builder.append("\r\n");
 
-			Stream.concat(list1.stream(), list2.stream()).distinct().forEach((line) -> {
-				_builder.append(line + "\t");
-				writeOrNot(_builder, line, list1).append("\t");
-				writeOrNot(_builder, line, list2).append("\r\n");
-			});
+			for(String word : allList) {
+				_builder.append(word).append("\t");
+				for(List<String> list : filesMap.values()) {
+					writeOrNot(_builder , word , list).append("\t");
+				}
+				_builder.append("\r\n");
+			}
 
 			BufferedWriter writer = Files.newBufferedWriter(OUTPUT_FILE,StandardCharsets.UTF_8);
 			writer.write(_builder.toString());

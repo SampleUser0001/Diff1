@@ -1,7 +1,11 @@
-line	item1	item2
-item1	○	×
-ほげ	○	○
-ぴよ	○	×
-ふが	○	○
-item2	×	○
-ほげほげ	×	○
+input3.txt	input2.txt	input1.txt	
+hoho	○	×	×	
+gege	○	×	×	
+ほげ	○	○	○	
+hoge	○	×	×	
+piyo	○	×	×	
+item2	×	○	×	
+ふが	×	○	○	
+ほげほげ	×	○	×	
+item1	×	×	○	
+ぴよ	×	×	○	
