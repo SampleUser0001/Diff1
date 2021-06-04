@@ -43,6 +43,7 @@ public class Main {
 		try {
 
 			StringBuilder _builder = new StringBuilder();
+			_builder.append("\t");
 			for(String filePath : filesMap.keySet()) {
 				_builder.append(filePath+"\t");
 			}
